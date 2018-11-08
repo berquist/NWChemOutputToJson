@@ -11,7 +11,7 @@
 # limitations under the License.
 ##############################################################################
 
-import json, sys, string, itertools
+import json
 from collections import OrderedDict
 
 try:
@@ -437,9 +437,10 @@ class nwchemToJson:
             else:
                 alphaBeta = False
                 loopRange = 1
-            molecularOrbitals = {}
-            molecularOrbitals["id"] = "orbitalsMolecule." + str(self.molecule.molCount)
-            molecularOrbitals["atomicOrbitalDescriptions"] = self.genFuncForMol()
+            molecularOrbitals = {
+                "id": "orbitalsMolecule." + str(self.molecule.molCount),
+                "atomicOrbitalDescriptions": self.genFuncForMol(),
+            }
             molecularOrbital = []
             for i in range(loopRange):
                 if loopRange > 1:
@@ -455,7 +456,7 @@ class nwchemToJson:
                     line = streamIn.readline()
                 while line:
                     if line.find("Vector") >= 0:
-                        orbital = {}
+                        orbital = dict()
                         coefficients = [0.0] * len(
                             molecularOrbitals["atomicOrbitalDescriptions"]
                         )
@@ -736,7 +737,7 @@ class nwchemToJson:
             }
 
         def entBlock(line, streamIn):
-            entropy = {}
+            entropy = dict()
             vars = line.split()
             entropy["totalEntropy"] = {"value": float(vars[3]), "units": vars[4]}
             vars = streamIn.readline().split()
@@ -862,7 +863,7 @@ class nwchemToJson:
 
         def propDip(streamIn):
             myList = ["momentX", "momentY", "momentZ"]
-            dipProp = {}
+            dipProp = dict()
             for _ in range(3):
                 line = streamIn.readline()
             vars = streamIn.readline().split()
@@ -892,7 +893,7 @@ class nwchemToJson:
                 "momentXZ",
                 "momentYZ",
             ]
-            quadProp = {}
+            quadProp = dict()
             for _ in range(3):
                 line = streamIn.readline()
             vars = streamIn.readline().split()
@@ -969,7 +970,7 @@ class nwchemToJson:
                     line = streamIn.readline()
                 vars = streamIn.readline().split()
                 value = []
-                efgProp = {}
+                efgProp = dict()
                 for j in range(9):
                     value.append(float(vars[myIndex[j]]))
                 efgProp["efgTensor"] = {"tensorValues": value, "units": "atomic units"}
@@ -996,7 +997,7 @@ class nwchemToJson:
 
         def propShield(streamIn):
             line = streamIn.readline()
-            chemshield = {}
+            chemshield = dict()
             csNames = [
                 "diamagneticComponentShieldingTensor",
                 "paramagneticComponentShieldingTensor",
@@ -1105,7 +1106,7 @@ class nwchemToJson:
                     coupledAtom2.update({"nuclearGFactor": float(vars[3])})
                     for _ in range(3):
                         line = streamIn.readline()
-                    spinpair1 = {}
+                    spinpair1 = dict()
                     for i in range(6):
                         value = []
                         for _ in range(3):
@@ -1157,7 +1158,7 @@ class nwchemToJson:
         molProps = []
         molProps.append({"Molecule": "Molecule." + str(self.molecule.molCount)})
         for i in range(1, self.molecule.atomCount + 1):
-            atomProp = {}
+            atomProp = dict()
             atomProp["atom"] = "Atom." + str(i) + ".Mol." + str(self.molecule.molCount)
             molProps.append(atomProp)
         line = streamIn.readline()
@@ -1256,14 +1257,14 @@ class basisObj:
     def __init__(self):
         self.basCount = 0
         self.basUpdated = False
-        self.basis = {}
+        self.basis = dict()
 
     def readBasis(self, line, streamIn):
         self.basCount += 1
-        self.basis = {}
+        self.basis = dict()
         atomBasCount = 0
         if not self.basUpdated:
-            self.basis = {}
+            self.basis = dict()
             self.basis["id"] = "BasisSet." + str(self.basCount)
             self.basis["basisFunctions"] = []
         cartSpher = line.replace("(", "").replace(")", "").split()[-1]
@@ -1287,12 +1288,13 @@ class basisObj:
                 break
             atomLab, atomName = line.replace("(", "").replace(")", "").split()
             atomBasCount += 1
-            basisAtom = {}
-            basisAtom["id"] = atomLab + "-orb" + str(atomBasCount)
-            basisAtom["elementLabel"] = atomLab
-            basisAtom["elementName"] = atomName
-            basisAtom["basisSetType"] = "orbitalBasis"
-            basisAtom["basisSetHarmonicType"] = cartSpher
+            basisAtom = {
+                "id": atomLab + "-orb" + str(atomBasCount),
+                "elementLabel": atomLab,
+                "elementName": atomName,
+                "basisSetType": "orbitalBasis",
+                "basisSetHarmonicType": cartSpher,
+            }
             for _ in range(4):
                 line = streamIn.readline()
             cont = 1
@@ -1320,9 +1322,10 @@ class basisObj:
                         cont += 1
                         basisExp = []
                         basisCoef = []
-                        basisCont = {}
-                        basisCont["id"] = atomLab + "-orbc" + str(cont)
-                        basisCont["basisSetShellType"] = vars[1].lower()
+                        basisCont = {
+                            "id": atomLab + "-orbc" + str(cont),
+                            "basisSetShellType": vars[1].lower(),
+                        }
                         basisExp.append(float(vars[2]))
                         basisCoef.append(float(vars[3]))
                 line = streamIn.readline()
