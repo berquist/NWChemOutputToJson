@@ -11,8 +11,14 @@
 # limitations under the License.
 ##############################################################################
 
-import json, sys, string, itertools, openbabel
+import json, sys, string, itertools
 from collections import OrderedDict
+
+try:
+    import openbabel
+    _HAS_OPENBABEL = True
+except ImportError:
+    _HAS_OPENBABEL = False
 
 
 class nwchemToJson:
@@ -91,9 +97,10 @@ class nwchemToJson:
     def setMoleculeID(self):
         self.calcTask["id"] = "calculation." + str(self.taskNumber)
         self.calcTask["molecularFormula"] = self.molecule.molecularFormula
-        self.calcTask["inChiKey"] = self.molecule.inChiKey
-        self.calcTask["smilesString"] = self.molecule.smiles
-        self.calcTask["molecularFormula"] = self.molecule.formula
+        if _HAS_OPENBABEL:
+            self.calcTask["inChiKey"] = self.molecule.inChiKey
+            self.calcTask["smilesString"] = self.molecule.smiles
+            self.calcTask["molecularFormula"] = self.molecule.formula
 
     def setSetup(self):
         if self.molecule.geomUpdated:
@@ -1410,10 +1417,11 @@ class moleculeObj:
         self.molecule = {}
         self.atomCount = 0
         self.molecularFormula = ""
-        self.inChi = ""
-        self.inChiKey = ""
-        self.smiles = ""
-        self.formula = ""
+        if _HAS_OPENBABEL:
+            self.inChi = ""
+            self.inChiKey = ""
+            self.smiles = ""
+            self.formula = ""
 
     def readGeom(self, line, streamIn):
         elements = [
@@ -1543,7 +1551,8 @@ class moleculeObj:
         self.molecule["id"] = "Molecule." + str(self.molCount)
         self.molecularFormula = ""
         atoms = []
-        mol = openbabel.OBMol()
+        if _HAS_OPENBABEL:
+            mol = openbabel.OBMol()
         for _ in range(3):
             line = streamIn.readline()
         if line.split()[3] == "a.u.":
@@ -1561,7 +1570,8 @@ class moleculeObj:
                 atom = {}
                 cart = {}
                 val = []
-                a = mol.NewAtom()
+                if _HAS_OPENBABEL:
+                    a = mol.NewAtom()
                 atom["id"] = "Atom." + str(vars[0]) + ".Mol." + str(self.molCount)
                 atom["elementLabel"] = vars[1]
                 elementNumber = int(float(vars[2]))
@@ -1615,12 +1625,13 @@ class moleculeObj:
                 break
             line = streamIn.readline()
         self.molecule["symmetry"] = symmetry
-        obConversion = openbabel.OBConversion()
-        self.formula = mol.GetSpacedFormula()
-        obConversion.SetInAndOutFormats("xyz", "inchi")
-        self.inChi = obConversion.WriteString(mol)
-        obConversion.SetInAndOutFormats("xyz", "inchikey")
-        self.inChiKey = obConversion.WriteString(mol)
-        obConversion.SetInAndOutFormats("xyz", "smi")
-        self.smiles = obConversion.WriteString(mol)
-        self.geomUpdated = True
+        if _HAS_OPENBABEL:
+            obConversion = openbabel.OBConversion()
+            self.formula = mol.GetSpacedFormula()
+            obConversion.SetInAndOutFormats("xyz", "inchi")
+            self.inChi = obConversion.WriteString(mol)
+            obConversion.SetInAndOutFormats("xyz", "inchikey")
+            self.inChiKey = obConversion.WriteString(mol)
+            obConversion.SetInAndOutFormats("xyz", "smi")
+            self.smiles = obConversion.WriteString(mol)
+            self.geomUpdated = True
