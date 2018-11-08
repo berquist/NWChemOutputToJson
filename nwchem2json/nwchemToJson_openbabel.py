@@ -144,7 +144,7 @@ class nwchemToJson:
             atomNum += 1
             for basis in self.basis.basis["basisFunctions"]:
                 if (
-                    basis["elementLabel"] == atom["elementLabel"]
+                    basis["elementLabel"].lower() == atom["elementLabel"].lower()
                     and basis["basisSetType"] == "orbitalBasis"
                 ):
                     spherical = basis["basisSetHarmonicType"] == "spherical"
@@ -1614,7 +1614,6 @@ class moleculeObj:
                 symmetry["groupName"] = line.split()[2]
                 break
             line = streamIn.readline()
-        self.molecule["symmetry"] = symmetry
         self.molecule["symmetry"] = symmetry
         obConversion = openbabel.OBConversion()
         self.formula = mol.GetSpacedFormula()
